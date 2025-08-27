@@ -18,5 +18,8 @@ module "repos" {
   force_delete         = true
   keep_last_images     = 10
   keep_untagged        = 0
-  tags                 = var.tags
+  create_ssm_param     = true
+  ssm_param_name       = "/idlms/${var.environment}/ecr/${var.name}/repository_url"
+
+  tags = var.tags
 }

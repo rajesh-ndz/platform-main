@@ -13,3 +13,6 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+variable "name" {
+  type = string
+} # e.g., "idlms-api"

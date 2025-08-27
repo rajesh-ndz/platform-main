@@ -65,3 +65,12 @@ variable "tags" {
   type    = map(string)
   default = {}
 }
+
+variable "create_ssm_param" {
+  type    = bool
+  default = false
+}
+variable "ssm_param_name" {
+  type    = string
+  default = null
+}
