@@ -46,3 +46,35 @@ variable "tags" {
   type    = map(string)
   default = {}
 }
+
+# --- Compute variables ---
+variable "ami_id" {
+  description = "If empty, latest Amazon Linux 2023 is used"
+  type        = string
+  default     = "ami-02d26659fd82cf299"
+}
+
+variable "instance_type" {
+  type    = string
+  default = "t3.micro"
+}
+
+variable "key_name" {
+  type    = string
+  default = null
+}
+
+variable "allow_ssh_cidrs" {
+  type    = list(string)
+  default = []
+}
+
+variable "allow_app_ports" {
+  type    = list(number)
+  default = []
+}
+
+variable "user_data" {
+  type    = string
+  default = null
+}

@@ -21,3 +21,17 @@ tags = {
   Environment = "stage"
   Owner       = "Platform"
 }
+# --- Compute defaults ---
+# leave ami_id empty to auto-pick latest Amazon Linux 2023
+ami_id        = "ami-02d26659fd82cf299"
+instance_type = "t3.micro"
+key_name      = null
+
+# Keep SSH disabled (use SSM). To enable SSH from your IP:
+# allow_ssh_cidrs = ["<your.ip.address>/32"]
+allow_ssh_cidrs = []
+
+# Example app ports (open to 0.0.0.0/0 for now; tighten later or use NLB SG)
+allow_app_ports = [4000, 4001, 4002]
+
+# Robust SSM bootstrap for Ubuntu (snap) and Amazon Linux/RHEL/Debian
