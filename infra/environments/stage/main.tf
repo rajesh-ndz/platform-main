@@ -29,29 +29,24 @@ module "ecr" {
 module "nlb" {
   source = "../../platform/container/nlb"
 
-
   region     = var.region
-  name       = "stage-idlms-nlb"
+  name       = "${var.env_name}-idlms-nlb"
   vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.public_subnet_ids # use private_subnet_ids if internal = true
-  internal   = false                            # true for internal NLB
-
+  subnet_ids = module.network.public_subnet_ids
+  internal   = false
 
   listener_port     = 80
   listener_protocol = "TCP"
 
-
-  target_port     = 8080 # your EC2 app port
+  target_port     = 8080 # your app port
   target_protocol = "TCP"
-  target_type     = "instance" # or "ip"
+  target_type     = "instance"
 
-
-  target_instance_ids = [module.compute.ec2_instance_id]
-  # target_ips = [module.compute.ec2_private_ip] # if target_type = "ip"
-
+  target_instance_ids = [module.compute.instance_id]
 
   tags = {
     Project     = "IDLMS"
     Environment = var.env_name
   }
 }
+
