@@ -78,3 +78,17 @@ variable "user_data" {
   type    = string
   default = null
 }
+
+variable "ecr_repositories" {
+  description = "Short repo names to create in ECR, will be prefixed with <env>-idlms-"
+  type        = list(string)
+  default     = []
+}
+
+output "ecr_repository_urls" {
+  value = module.ecr.repository_urls
+}
+
+output "ecr_repository_names" {
+  value = module.ecr.repository_names
+}
