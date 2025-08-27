@@ -19,7 +19,7 @@ module "repos" {
   keep_last_images     = 10
   keep_untagged        = 0
   create_ssm_param     = true
-  ssm_param_name       = "/idlms/${var.environment}/ecr/${var.name}/repository_url"
+  ssm_param_name       = "/idlms/${var.env_name}/ecr/${var.name}/repository_url"
 
   tags = var.tags
 }
