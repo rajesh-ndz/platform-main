@@ -1,13 +1,19 @@
-# Local .terraform directories
-.terraform/
-.idea/
-# Crash log files
+# Terraform build + state (do NOT commit)
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+
+# Terraform crash & override files
 crash.log
 crash.*.log
-!infra/environments/*/*.tfvars
-*.tfstate
-*.tfstate.backup
-.terraform/
-.terraform.lock.hcl
-**/.terraform/*
-.terraform/*
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Keep the dependency lock file in Git
+!.terraform.lock.hcl
+
+# Usually keep secrets out of Git
+*.tfvars
+!**/templates.tfvars
