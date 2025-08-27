@@ -1,7 +1,17 @@
+# terraform {
+#   required_providers {
+#     aws = {
+#       source  = "hashicorp/aws"
+#       version = ">= 5.0"
+#     }
+#   }
+# }
+
 locals {
-  lifecycle_policy_json = jsonencode({
-    rules = compact([
-      var.keep_untagged > 0 ? {
+  # Build rules as a list of objects (no compact(strings) misuse)
+  rules = concat(
+    var.keep_untagged > 0 ? [
+      {
         rulePriority = 1
         description  = "Expire untagged images beyond count"
         selection = {
@@ -10,7 +20,9 @@ locals {
           countNumber = var.keep_untagged
         }
         action = { type = "expire" }
-      } : null,
+      }
+    ] : [],
+    [
       {
         rulePriority = 2
         description  = "Keep last N images"
@@ -21,8 +33,11 @@ locals {
         }
         action = { type = "expire" }
       }
-    ])
-  })
+    ],
+    var.additional_rules
+  )
+
+  lifecycle_policy_json = jsonencode({ rules = local.rules })
 }
 
 resource "aws_ecr_repository" "this" {
@@ -37,7 +52,8 @@ resource "aws_ecr_repository" "this" {
   }
 
   encryption_configuration {
-    encryption_type = "AES256"
+    encryption_type = var.encryption_type
+    kms_key         = var.encryption_type == "KMS" ? var.kms_key_id : null
   }
 
   tags = var.tags
