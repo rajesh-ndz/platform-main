@@ -1,8 +1,8 @@
 # Prod environment
-env_name  = "prod"
-region    = "eu-west-1"  # Ireland
-vpc_name  = "prod-idlms-vpc"
-vpc_cidr  = "10.20.0.0/16"
+env_name = "prod"
+region   = "eu-west-1" # Ireland
+vpc_name = "prod-idlms-vpc"
+vpc_cidr = "10.20.0.0/16"
 
 azs = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
 
@@ -13,7 +13,7 @@ enable_dns_support   = true
 enable_dns_hostnames = true
 instance_tenancy     = "default"
 
-nat_gateway_mode = "one_per_az"  # or "single"
+nat_gateway_mode = "one_per_az" # or "single"
 
 tags = {
   Project     = "IDLMS"

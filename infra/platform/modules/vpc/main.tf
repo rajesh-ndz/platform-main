@@ -14,7 +14,7 @@ resource "aws_vpc" "this" {
   instance_tenancy     = var.instance_tenancy
   enable_dns_support   = var.enable_dns_support
   enable_dns_hostnames = var.enable_dns_hostnames
-  tags = merge(local.name_tags, { Name = var.vpc_name })
+  tags                 = merge(local.name_tags, { Name = var.vpc_name })
 }
 
 # Internet Gateway
@@ -25,21 +25,21 @@ resource "aws_internet_gateway" "this" {
 
 # Public Subnets
 resource "aws_subnet" "public" {
-  for_each = { for idx, cidr in var.public_subnet_cidrs : idx => cidr }
+  for_each                = { for idx, cidr in var.public_subnet_cidrs : idx => cidr }
   vpc_id                  = aws_vpc.this.id
   cidr_block              = each.value
   availability_zone       = element(var.azs, tonumber(each.key))
   map_public_ip_on_launch = true
-  tags = merge(local.name_tags, { Name = "${var.env_name}-public-${each.key}" })
+  tags                    = merge(local.name_tags, { Name = "${var.env_name}-public-${each.key}" })
 }
 
 # Private Subnets
 resource "aws_subnet" "private" {
-  for_each = { for idx, cidr in var.private_subnet_cidrs : idx => cidr }
+  for_each          = { for idx, cidr in var.private_subnet_cidrs : idx => cidr }
   vpc_id            = aws_vpc.this.id
   cidr_block        = each.value
   availability_zone = element(var.azs, tonumber(each.key))
-  tags = merge(local.name_tags, { Name = "${var.env_name}-private-${each.key}" })
+  tags              = merge(local.name_tags, { Name = "${var.env_name}-private-${each.key}" })
 }
 
 # Public route table + default route to IGW
@@ -84,7 +84,7 @@ resource "aws_nat_gateway" "this" {
 # Private route tables + default route to NAT(s)
 # If single NAT, create one private RT and associate all private subnets.
 resource "aws_route_table" "private_single" {
-  count = var.nat_gateway_mode == "single" ? 1 : 0
+  count  = var.nat_gateway_mode == "single" ? 1 : 0
   vpc_id = aws_vpc.this.id
   tags   = merge(local.name_tags, { Name = "${var.env_name}-private-rt" })
 }
@@ -97,7 +97,7 @@ resource "aws_route" "private_single_default" {
 }
 
 resource "aws_route_table_association" "private_single_assoc" {
-  for_each = var.nat_gateway_mode == "single" ? aws_subnet.private : {}
+  for_each       = var.nat_gateway_mode == "single" ? aws_subnet.private : {}
   subnet_id      = each.value.id
   route_table_id = aws_route_table.private_single[0].id
 }
@@ -105,8 +105,8 @@ resource "aws_route_table_association" "private_single_assoc" {
 # If one_per_az, create one private RT per AZ and associate subnets by matching index
 resource "aws_route_table" "private" {
   for_each = var.nat_gateway_mode == "one_per_az" ? aws_subnet.private : {}
-  vpc_id = aws_vpc.this.id
-  tags   = merge(local.name_tags, { Name = "${var.env_name}-private-rt-${each.key}" })
+  vpc_id   = aws_vpc.this.id
+  tags     = merge(local.name_tags, { Name = "${var.env_name}-private-rt-${each.key}" })
 }
 
 resource "aws_route" "private_default" {
@@ -117,7 +117,7 @@ resource "aws_route" "private_default" {
 }
 
 resource "aws_route_table_association" "private_assoc" {
-  for_each = var.nat_gateway_mode == "one_per_az" ? aws_subnet.private : {}
+  for_each       = var.nat_gateway_mode == "one_per_az" ? aws_subnet.private : {}
   subnet_id      = aws_subnet.private[each.key].id
   route_table_id = aws_route_table.private[each.key].id
 }
