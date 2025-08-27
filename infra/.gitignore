@@ -1,0 +1,13 @@
+# Local .terraform directories
+.terraform/
+.idea/
+# Crash log files
+crash.log
+crash.*.log
+!infra/environments/*/*.tfvars
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+**/.terraform/*
+.terraform/*
