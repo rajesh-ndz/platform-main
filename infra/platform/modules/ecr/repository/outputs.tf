@@ -15,7 +15,3 @@ output "ssm_parameter_names" {
   description = "List of SSM parameter names created (if create_ssm_param=true)"
 }
 
-output "lb_arn_suffix" { value = aws_lb.this.arn_suffix }
-output "tg_arn_suffix" { value = aws_lb_target_group.this.arn_suffix }
-
-

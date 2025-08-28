@@ -51,3 +51,29 @@ module "nlb" {
   }
 }
 
+module "cloudwatch" {
+  source = "../../platform/core/cloudwatch"
+
+  region      = var.region
+  environment = var.env_name
+
+  # reuse existing compute + nlb outputs
+  ec2_instance_ids  = [module.compute.instance_id]
+  nlb_lb_arn_suffix = module.nlb.lb_arn_suffix
+  nlb_tg_arn_suffix = module.nlb.tg_arn_suffix
+
+  # optional SNS ARNs for alarm notifications (leave empty if none)
+  alarm_actions = []
+  ok_actions    = []
+
+  # optional app log group (create now, use later with CW Agent)
+  create_app_log_group = true
+  app_log_group_name   = "/idlms/${var.env_name}/app"
+  retention_days       = 30
+
+  tags = {
+    Project     = "IDLMS"
+    Environment = var.env_name
+    Owner       = "Platform"
+  }
+}
