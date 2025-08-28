@@ -23,6 +23,7 @@ module "ecr" {
 
   env_name     = var.env_name
   repositories = var.ecr_repositories
+  name         = "idlms-api"
   tags         = var.tags
 }
 

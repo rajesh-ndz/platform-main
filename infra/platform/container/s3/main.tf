@@ -1,41 +1,24 @@
-provider "aws" { region = var.region }
+# provider "aws" { region = var.region }
 
-data "aws_caller_identity" "current" {}
+module "bucket" {
+  source = "../../modules/s3/bucket"
 
-locals {
-  # Deterministic, globally-unique-style names that match your style and avoid conflicts
-  artifacts_bucket = "${var.environment}-idlms-artifacts-${data.aws_caller_identity.current.account_id}"
-  logs_bucket      = "${var.environment}-idlms-logs-${data.aws_caller_identity.current.account_id}"
+  environment          = var.environment
+  name                 = var.name
+  bucket_name_override = var.bucket_name_override
 
-  common_tags = merge({
-    Project     = "IDLMS"
-    Environment = var.environment
-    Owner       = "Platform"
-  }, var.tags)
+  sse_algorithm = var.sse_algorithm
+  kms_key_id    = var.kms_key_id
+  versioning    = var.versioning
+  force_destroy = var.force_destroy
+
+  enable_ia_transition   = var.enable_ia_transition
+  ia_after_days          = var.ia_after_days
+  noncurrent_expire_days = var.noncurrent_expire_days
+  expire_after_days      = var.expire_after_days
+
+  create_ssm_params = var.create_ssm_params
+  ssm_path_prefix   = var.ssm_path_prefix
+
+  tags = var.tags
 }
-
-module "artifacts" {
-  source = "../../modules/s3_bucket"
-
-  bucket_name         = local.artifacts_bucket
-  enable_versioning   = true
-  block_public_access = true
-  tags                = local.common_tags
-
-  # SSM params for reuse by other stacks/pipelines
-  ssm_param_bucket_name = "/idlms/${var.environment}/s3/artifacts/bucket_name"
-  ssm_param_bucket_arn  = "/idlms/${var.environment}/s3/artifacts/bucket_arn"
-}
-
-module "logs" {
-  source = "../../modules/s3_bucket"
-
-  bucket_name         = local.logs_bucket
-  enable_versioning   = true
-  block_public_access = true
-  tags                = local.common_tags
-
-  ssm_param_bucket_name = "/idlms/${var.environment}/s3/logs/bucket_name"
-  ssm_param_bucket_arn  = "/idlms/${var.environment}/s3/logs/bucket_arn"
-}
-

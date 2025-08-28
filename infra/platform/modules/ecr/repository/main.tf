@@ -64,12 +64,3 @@ resource "aws_ecr_lifecycle_policy" "this" {
   repository = each.value.name
   policy     = local.lifecycle_policy_json
 }
-
-resource "aws_ssm_parameter" "repo_url" {
-  count     = var.create_ssm_param && var.ssm_param_name != null ? 1 : 0
-  name      = var.ssm_param_name
-  type      = "String"
-  value     = aws_ecr_repository.this.repository_url
-  overwrite = true
-  tags      = var.tags
-}

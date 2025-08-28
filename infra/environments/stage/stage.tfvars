@@ -40,8 +40,24 @@ ecr_repositories = ["api"]
 
 environment = "stage"
 
-tags = {
-  Project     = "IDLMS"
-  Owner       = "Platform"
-  Environment = "stage"
-}
+
+
+name = "idlms-artifacts" # results in "stage-idlms-artifacts" unless you override
+
+# If the computed name is taken globally, set an explicit name:
+# bucket_name_override = "stage-idlms-artifacts-592776312448"
+
+versioning    = true
+sse_algorithm = "AES256"
+force_destroy = false
+
+# Optional lifecycle tuning
+enable_ia_transition   = true
+ia_after_days          = 30
+noncurrent_expire_days = 90
+expire_after_days      = 0
+
+create_ssm_params = true
+ssm_path_prefix   = "/idlms"
+
+

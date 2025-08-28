@@ -1,14 +1,21 @@
+output "repository_arns" {
+  value = { for k, v in aws_ecr_repository.this : k => v.arn }
+}
+
 output "repository_names" {
-  description = "Map of repo key to repository name"
-  value       = { for k, r in aws_ecr_repository.this : k => r.name }
+  value = keys(aws_ecr_repository.this)
 }
 
 output "repository_urls" {
-  description = "Map of repo key to repository URL"
-  value       = { for k, r in aws_ecr_repository.this : k => r.repository_url }
+  value = { for k, v in aws_ecr_repository.this : k => v.repository_url }
 }
 
-output "repository_arns" {
-  description = "Map of repo key to repository ARN"
-  value       = { for k, r in aws_ecr_repository.this : k => r.arn }
+output "ssm_parameter_names" {
+  value       = try([for p in aws_ssm_parameter.repo_url : p.name], [])
+  description = "List of SSM parameter names created (if create_ssm_param=true)"
 }
+
+output "lb_arn_suffix" { value = aws_lb.this.arn_suffix }
+output "tg_arn_suffix" { value = aws_lb_target_group.this.arn_suffix }
+
+
