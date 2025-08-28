@@ -32,7 +32,7 @@ key_name      = null
 allow_ssh_cidrs = []
 
 # Example app ports (open to 0.0.0.0/0 for now; tighten later or use NLB SG)
-allow_app_ports = [4000, 4001, 4002]
+allow_app_ports = [4000, 4001, 4002, 8080]
 
 # Robust SSM bootstrap for Ubuntu (snap) and Amazon Linux/RHEL/Debian
 
