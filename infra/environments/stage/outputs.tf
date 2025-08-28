@@ -8,3 +8,10 @@ output "nlb_tg_arn" {
   value = module.nlb.tg_arn
 }
 
+output "ecr_repository_urls" {
+  value = module.ecr.repository_urls
+}
+output "ecr_repository_names" {
+
+  value = module.ecr.repository_names
+}

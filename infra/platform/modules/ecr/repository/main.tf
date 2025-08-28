@@ -1,14 +1,4 @@
-# terraform {
-#   required_providers {
-#     aws = {
-#       source  = "hashicorp/aws"
-#       version = ">= 5.0"
-#     }
-#   }
-# }
-
 locals {
-  # Build rules as a list of objects (no compact(strings) misuse)
   rules = concat(
     var.keep_untagged > 0 ? [
       {
@@ -63,4 +53,15 @@ resource "aws_ecr_lifecycle_policy" "this" {
   for_each   = aws_ecr_repository.this
   repository = each.value.name
   policy     = local.lifecycle_policy_json
+}
+
+# One SSM parameter per repository (if enabled)
+resource "aws_ssm_parameter" "repo_url" {
+  for_each = var.create_ssm_params && var.ssm_path_prefix != null ? aws_ecr_repository.this : {}
+
+  name      = "${var.ssm_path_prefix}/${each.key}/repository_url"
+  type      = "String"
+  value     = each.value.repository_url
+  overwrite = true
+  tags      = var.tags
 }

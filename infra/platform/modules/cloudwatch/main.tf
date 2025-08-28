@@ -81,3 +81,6 @@ resource "aws_cloudwatch_metric_alarm" "nlb_healthy_low" {
   insufficient_data_actions = var.insufficient_data_actions
   tags                      = var.tags
 }
+locals {
+  prefix = coalesce(var.prefix, "idlms-${var.environment}")
+}

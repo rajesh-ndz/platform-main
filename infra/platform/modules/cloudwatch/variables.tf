@@ -2,21 +2,33 @@ variable "environment" {
   type = string
 }
 
+# Optional: prefix used in alarm names. If null, main.tf can fallback to "idlms-${var.environment}"
+variable "prefix" {
+  type    = string
+  default = null
+}
+
 # EC2 alarms
 variable "ec2_instance_ids" {
   type    = list(string)
   default = []
 }
 
-# NLB alarms – use ARN suffix values
+# Toggle NLB alarms on/off (plan-safe)
+variable "enable_nlb_alarms" {
+  type    = bool
+  default = false
+}
+
+# NLB alarms – provide ARN suffix values when enable_nlb_alarms = true
 variable "nlb_lb_arn_suffix" {
   type    = string
-  default = null
+  default = ""
 }
 
 variable "nlb_tg_arn_suffix" {
   type    = string
-  default = null
+  default = ""
 }
 
 # Alarm actions (SNS ARNs). Leave empty to create alarms with no actions.

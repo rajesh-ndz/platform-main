@@ -18,15 +18,22 @@ output "vpc_id" { value = module.network.vpc_id }
 output "public_subnet_ids" { value = module.network.public_subnet_ids }
 output "private_subnet_ids" { value = module.network.private_subnet_ids }
 
+# --- ECR (container wrapper expects region/environment/name) ---
 module "ecr" {
-  source = "../../platform/container/ecr"
-
+  source       = "../../platform/container/ecr"
   env_name     = var.env_name
-  repositories = var.ecr_repositories
-  name         = "idlms-api"
-  tags         = var.tags
+  repositories = var.ecr_repositories # e.g. ["idlms-api", "idlms-worker"]
+
+  # optional knobs (defaults are safe)
+  # image_tag_mutability = "IMMUTABLE"
+  # keep_last_images     = 30
+  # create_ssm_params    = true
+  # ssm_path_prefix      = "/idlms/${var.env_name}/ecr"
+
+  tags = var.tags
 }
 
+# --- NLB ---
 module "nlb" {
   source = "../../platform/container/nlb"
 
@@ -39,10 +46,11 @@ module "nlb" {
   listener_port     = 80
   listener_protocol = "TCP"
 
-  target_port     = 8080 # your app port
+  target_port     = 8080
   target_protocol = "TCP"
   target_type     = "instance"
 
+  # NOTE: If module.compute.instance_id is unknown at plan time, attachments may need a second apply.
   target_instance_ids = [module.compute.instance_id]
 
   tags = {
@@ -50,48 +58,41 @@ module "nlb" {
     Environment = var.env_name
   }
 }
-
 module "cloudwatch" {
-  source = "../../platform/core/cloudwatch"
-
-  region      = var.region
+  source      = "../../platform/core/cloudwatch"
   environment = var.env_name
 
-  # reuse existing compute + nlb outputs
+  enable_ec2_alarms = true
+  enable_nlb_alarms = true
+
   ec2_instance_ids  = [module.compute.instance_id]
   nlb_lb_arn_suffix = module.nlb.lb_arn_suffix
   nlb_tg_arn_suffix = module.nlb.tg_arn_suffix
 
-  # optional SNS ARNs for alarm notifications (leave empty if none)
-  alarm_actions = []
+  alarm_actions = [] # add SNS arns if you have
   ok_actions    = []
 
-  # optional app log group (create now, use later with CW Agent)
   create_app_log_group = true
   app_log_group_name   = "/idlms/${var.env_name}/app"
   retention_days       = 30
 
-  tags = {
-    Project     = "IDLMS"
-    Environment = var.env_name
-    Owner       = "Platform"
-  }
+  tags = var.tags
 }
 
+
+
+# --- REST API (regional in ap-southeast-1) ---
 module "rest_api" {
   source = "../../platform/container/rest_api"
 
-  # Your IAM policy allows API Gateway only in ap-southeast-1
-  region = "ap-southeast-1"
-
+  region      = "ap-southeast-1"
   environment = var.env_name
   name        = "idlms-api"
 
-  # Reuse the NLB you created in ap-south-1 (public NLB DNS)
   integration_host      = module.nlb.lb_dns_name
   integration_port      = 80
-  integration_base_path = ""    # set if your app expects a prefix
-  use_https             = false # true only if your NLB listener is TLS
+  integration_base_path = ""
+  use_https             = false
 
   tags = {
     Project     = "IDLMS"

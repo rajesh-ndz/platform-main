@@ -1,11 +1,11 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.0"
-    }
-  }
-}
+# terraform {
+#   required_providers {
+#     aws = {
+#       source  = "hashicorp/aws"
+#       version = ">= 5.0"
+#     }
+#   }
+# }
 
 
 resource "aws_lb" "this" {
@@ -39,20 +39,21 @@ resource "aws_lb_target_group" "this" {
 
 # Register targets
 resource "aws_lb_target_group_attachment" "instance" {
-  for_each         = var.target_type == "instance" ? toset(var.target_instance_ids) : []
+  count = var.target_type == "instance" ? length(var.target_instance_ids) : 0
+
   target_group_arn = aws_lb_target_group.this.arn
-  target_id        = each.value
+  target_id        = var.target_instance_ids[count.index]
   port             = var.target_port
 }
 
 
 resource "aws_lb_target_group_attachment" "ip" {
-  for_each         = var.target_type == "ip" ? toset(var.target_ips) : []
+  count = var.target_type == "ip" ? length(var.target_ips) : 0
+
   target_group_arn = aws_lb_target_group.this.arn
-  target_id        = each.value
+  target_id        = var.target_ips[count.index]
   port             = var.target_port
 }
-
 
 resource "aws_lb_listener" "this" {
   load_balancer_arn = aws_lb.this.arn

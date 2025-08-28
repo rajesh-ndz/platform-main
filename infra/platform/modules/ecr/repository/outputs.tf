@@ -1,11 +1,12 @@
-output "repository_names" {
-  value = [for r in aws_ecr_repository.this : r.name]
-}
-
 output "repository_arns" {
-  value = [for r in aws_ecr_repository.this : r.arn]
+  value = { for k, r in aws_ecr_repository.this : k => r.arn }
 }
-
 output "repository_urls" {
-  value = [for r in aws_ecr_repository.this : r.repository_url]
+  value = { for k, r in aws_ecr_repository.this : k => r.repository_url }
+}
+output "repository_names" {
+  value = keys(aws_ecr_repository.this)
+}
+output "ssm_parameter_names" {
+  value = try([for p in aws_ssm_parameter.repo_url : p.name], [])
 }

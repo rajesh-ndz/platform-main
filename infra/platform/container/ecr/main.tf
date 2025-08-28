@@ -1,25 +1,26 @@
 locals {
-  # Derive project from tags to keep names consistent with earlier resources
-  project = try(lower(var.tags["Project"]), "idlms")
-
-  # Full valid ECR repo names: <env>-<project>-<short>
-  full_repo_names = [
-    for r in var.repositories :
-    lower(replace("${var.env_name}-${local.project}-${r}", "/[^a-z0-9-\\/]/", "-"))
-  ]
+  final_repo_names = var.prefix_with_env ? [for r in var.repositories : "${var.env_name}-${r}"] : var.repositories
+  ssm_prefix       = coalesce(var.ssm_path_prefix, "/idlms/${var.env_name}/ecr")
 }
 
 module "repos" {
   source = "../../modules/ecr/repository"
 
-  repository_names     = local.full_repo_names
-  image_tag_mutability = "IMMUTABLE"
-  scan_on_push         = true
-  force_delete         = true
-  keep_last_images     = 10
-  keep_untagged        = 0
-  create_ssm_param     = true
-  ssm_param_name       = "/idlms/${var.env_name}/ecr/${var.name}/repository_url"
+  repository_names     = local.final_repo_names
+  image_tag_mutability = var.image_tag_mutability
+  scan_on_push         = var.scan_on_push
+  force_delete         = var.force_delete
+  encryption_type      = var.encryption_type
+  kms_key_id           = var.kms_key_id
 
-  tags = var.tags
+  keep_untagged    = var.keep_untagged
+  keep_last_images = var.keep_last_images
+  additional_rules = var.additional_rules
+
+  create_ssm_params = var.create_ssm_params
+  ssm_path_prefix   = local.ssm_prefix
+
+  tags = merge(var.tags, {
+    Environment = var.env_name
+  })
 }
