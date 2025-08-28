@@ -37,3 +37,11 @@ allow_app_ports = [4000, 4001, 4002]
 # Robust SSM bootstrap for Ubuntu (snap) and Amazon Linux/RHEL/Debian
 
 ecr_repositories = ["api"]
+
+environment = "stage"
+
+tags = {
+  Project     = "IDLMS"
+  Owner       = "Platform"
+  Environment = "stage"
+}
