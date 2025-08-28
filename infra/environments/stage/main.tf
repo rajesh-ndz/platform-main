@@ -77,3 +77,25 @@ module "cloudwatch" {
     Owner       = "Platform"
   }
 }
+
+module "rest_api" {
+  source = "../../platform/container/rest_api"
+
+  # Your IAM policy allows API Gateway only in ap-southeast-1
+  region = "ap-southeast-1"
+
+  environment = var.env_name
+  name        = "idlms-api"
+
+  # Reuse the NLB you created in ap-south-1 (public NLB DNS)
+  integration_host      = module.nlb.lb_dns_name
+  integration_port      = 80
+  integration_base_path = ""    # set if your app expects a prefix
+  use_https             = false # true only if your NLB listener is TLS
+
+  tags = {
+    Project     = "IDLMS"
+    Environment = var.env_name
+    Owner       = "Platform"
+  }
+}
