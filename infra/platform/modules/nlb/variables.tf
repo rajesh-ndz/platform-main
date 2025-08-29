@@ -1,90 +1,94 @@
 variable "name" {
-  type = string
+  type        = string
+  description = "Name of the load balancer (and base for TG names)"
 }
 
 variable "vpc_id" {
-  type = string
+  type        = string
+  description = "VPC where target groups live"
 }
 
-variable "subnet_ids" {
-  type = list(string)
+# Must be 'network' because we use TCP listeners
+variable "load_balancer_type" {
+  type        = string
+  default     = "network"
+  description = "LB type. Must be 'network' for TCP."
+  validation {
+    condition     = var.load_balancer_type == "network"
+    error_message = "This module is TCP-based; set load_balancer_type = \"network\"."
+  }
 }
 
 variable "internal" {
-  type    = bool
-  default = false
+  type        = bool
+  default     = false
+  description = "Internal NLB (true) or internet-facing (false)"
 }
 
-variable "listener_port" {
-  type    = number
-  default = 80
+variable "enable_cross_zone_load_balancing" {
+  type        = bool
+  default     = true
+  description = "Cross-zone LB for NLB"
 }
 
-variable "listener_protocol" {
-  type    = string
-  default = "TCP"
-  validation {
-    condition     = contains(["TCP", "TLS", "UDP", "TCP_UDP"], var.listener_protocol)
-    error_message = "listener_protocol must be TCP, TLS, UDP, or TCP_UDP"
-  }
+variable "enable_deletion_protection" {
+  type        = bool
+  default     = false
+  description = "Protect NLB from deletion"
 }
 
-variable "target_port" {
-  type = number
+# Example element:
+# {
+#   subnet_id            = "subnet-abc..."
+#   allocation_id        = "eipalloc-123..."   # optional (EIP per subnet)
+#   private_ipv4_address = "10.0.0.10"        # optional (static NLB IP)
+#   ipv6_address         = null               # optional
+# }
+variable "subnet_mapping" {
+  type = list(object({
+    subnet_id            = string
+    allocation_id        = optional(string)
+    private_ipv4_address = optional(string)
+    ipv6_address         = optional(string)
+  }))
+  description = "One mapping per public subnet"
 }
 
-variable "target_protocol" {
-  type    = string
-  default = "TCP"
-  validation {
-    condition     = contains(["TCP", "TLS", "UDP", "TCP_UDP"], var.target_protocol)
-    error_message = "target_protocol must be TCP, TLS, UDP, or TCP_UDP"
-  }
+# Ports to expose on the NLB (each gets its own TG + listener)
+variable "additional_ports" {
+  type        = list(number)
+  description = "List of TCP listener/target-group ports (e.g., [80, 8080])"
 }
 
-variable "target_type" {
-  description = "Target registration mode: instance or ip"
-  type        = string
-  default     = "instance"
-  validation {
-    condition     = contains(["instance", "ip"], var.target_type)
-    error_message = "target_type must be 'instance' or 'ip'"
-  }
-}
-
-variable "target_instance_ids" {
-  description = "Instance IDs for target registration when target_type = 'instance'"
-  type        = list(string)
-  default     = []
-}
-
+# IP targets to register on every port (use instance private IPs or ENI IPs)
 variable "target_ips" {
-  description = "IP addresses for target registration when target_type = 'ip'"
   type        = list(string)
-  default     = []
-}
-
-variable "health_check_port" {
-  type    = string
-  default = "traffic-port"
-}
-
-variable "health_check_protocol" {
-  type    = string
-  default = "TCP"
-}
-
-variable "deregistration_delay" {
-  type    = number
-  default = 60
-}
-
-variable "cross_zone" {
-  type    = bool
-  default = true
+  description = "IP addresses to register into each port's target group"
 }
 
 variable "tags" {
-  type    = map(string)
-  default = {}
+  type        = map(string)
+  default     = {}
+  description = "Tags applied to NLB & target groups"
+}
+
+# Health check knobs (TCP-only by default)
+variable "hc_healthy_threshold" {
+  type    = number
+  default = 2
+}
+
+variable "hc_unhealthy_threshold" {
+  type    = number
+  default = 2
+}
+
+variable "hc_timeout" {
+  type    = number
+  default = 10
+}
+
+variable "hc_interval" {
+  type    = number
+  default = 30
 }
