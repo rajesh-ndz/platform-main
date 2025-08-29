@@ -1,7 +1,7 @@
-variable "region" {
-  type        = string
-  description = "IMPORTANT: use ap-southeast-1 to match your IAM"
-}
+# variable "region" {
+#   type        = string
+#   description = "IMPORTANT: use ap-southeast-1 to match your IAM"
+# }
 
 variable "environment" {
   type        = string

@@ -1,29 +1,31 @@
-output "bucket_id" {
-  value       = module.bucket.bucket_id
-  description = "ID of the S3 bucket"
+output "bucket_name" {
+  value       = aws_s3_bucket.this.bucket
+  description = "S3 bucket name"
 }
 
 output "bucket_arn" {
-  value       = module.bucket.bucket_arn
-  description = "ARN of the S3 bucket"
+  value       = aws_s3_bucket.this.arn
+  description = "S3 bucket ARN"
 }
 
+# Convenience domains
 output "bucket_domain_name" {
-  value       = module.bucket.bucket_domain_name
-  description = "Global (legacy) S3 website/domain name"
+  value       = "${aws_s3_bucket.this.bucket}.s3.amazonaws.com"
+  description = "Global S3 virtual-hosted-style domain"
 }
 
 output "bucket_regional_domain" {
-  value       = module.bucket.bucket_regional_domain
-  description = "Regional S3 bucket domain name"
+  value       = "${aws_s3_bucket.this.bucket}.s3.${data.aws_region.current.name}.amazonaws.com"
+  description = "Regional S3 domain"
 }
 
+# SSM parameter names (null if not created)
 output "ssm_bucket_name_param" {
-  value       = module.bucket.ssm_bucket_name_param
-  description = "SSM Parameter name storing the bucket name"
+  value       = var.create_ssm_params ? aws_ssm_parameter.bucket_name[0].name : null
+  description = "SSM parameter path for bucket name"
 }
 
 output "ssm_bucket_arn_param" {
-  value       = module.bucket.ssm_bucket_arn_param
-  description = "SSM Parameter name storing the bucket ARN"
+  value       = var.create_ssm_params ? aws_ssm_parameter.bucket_arn[0].name : null
+  description = "SSM parameter path for bucket ARN"
 }
