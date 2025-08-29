@@ -10,13 +10,13 @@ variable "ec2_name" {
   type = string
 }
 
-variable "instance_type" {
-  type = string
-}
-
 variable "ami_id" {
   type    = string
-  default = ""
+  default = "" # empty means module can decide a default
+}
+
+variable "instance_type" {
+  type = string
 }
 
 variable "key_name" {
@@ -24,23 +24,15 @@ variable "key_name" {
   default = null
 }
 
-# variable "allow_cidrs" {
-#   type    = list(string)
-#   default = []
-# }
-
-# variable "allow_app_ports" {
-#   type    = list(number)
-#   default = []
-# }
+variable "app_ports" {
+  type = list(number)
+}
 
 variable "tags" {
   type    = map(string)
   default = {}
 }
-variable "user_data" {
-  type    = string
-  default = null
+
+variable "cloudwatch_ssm_config_path" {
+  type = string
 }
-
-

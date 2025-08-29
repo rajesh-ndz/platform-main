@@ -10,18 +10,11 @@ module "network" {
   enable_dns_support   = var.enable_dns_support
   enable_dns_hostnames = var.enable_dns_hostnames
   instance_tenancy     = var.instance_tenancy
-  nat_gateway_mode     = var.nat_gateway_mode
-  tags                 = var.tags
+  #   nat_gateway_mode     = var.nat_gateway_mode
+  tags = var.tags
 }
 
-output "vpc_id" {
-  value = module.network.vpc_id
-}
 
-output "public_subnet_ids" {
-  value = module.network.public_subnet_ids
-}
-
-output "private_subnet_ids" {
-  value = module.network.private_subnet_ids
-}
+output "vpc_id" { value = module.network.vpc_id }
+output "public_subnet_ids" { value = module.network.public_subnet_ids }
+output "private_subnet_ids" { value = module.network.private_subnet_ids }

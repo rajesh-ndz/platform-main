@@ -38,10 +38,10 @@ variable "instance_tenancy" {
   type = string
 }
 
-variable "nat_gateway_mode" {
-  type = string
-}
-
+# variable "nat_gateway_mode" {
+#   type = string
+# }
+# 
 variable "tags" {
   type    = map(string)
   default = {}
