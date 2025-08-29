@@ -1,6 +1,5 @@
-variable "region" {
-  type = string
-}
+# Wrapper inputs for the NLB module.
+# NOTE: Do NOT include "region" here; inherit it from the root provider.
 
 variable "name" {
   type = string
