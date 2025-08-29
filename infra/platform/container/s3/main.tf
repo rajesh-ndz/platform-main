@@ -39,6 +39,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
     content {
       id     = "standard-to-ia"
       status = "Enabled"
+      filter { prefix = "" }
       transition {
         days          = var.ia_after_days
         storage_class = "STANDARD_IA"
@@ -54,6 +55,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
     content {
       id     = "expire-current-objects"
       status = "Enabled"
+      filter { prefix = "" }
       expiration { days = var.expire_after_days }
     }
   }
