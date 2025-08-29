@@ -1,25 +1,39 @@
 output "lb_arn" {
-  value = aws_lb.this.arn
+  description = "ARN of the Network Load Balancer"
+  value       = aws_lb.idlms_nlb.arn
+}
+
+output "lb_name" {
+  description = "Name of the Network Load Balancer"
+  value       = aws_lb.idlms_nlb.name
 }
 
 output "lb_dns_name" {
-  value = aws_lb.this.dns_name
+  description = "DNS name of the Network Load Balancer"
+  value       = aws_lb.idlms_nlb.dns_name
 }
 
 output "lb_zone_id" {
-  value = aws_lb.this.zone_id
+  description = "Route53 hosted zone ID to create an alias record for the NLB"
+  value       = aws_lb.idlms_nlb.zone_id
 }
 
-# Maps keyed by port (as string)
 output "target_group_arns" {
-  value = { for k, tg in aws_lb_target_group.multi : k => tg.arn }
+  description = "Map of port (string) => Target Group ARN"
+  value       = { for k, tg in aws_lb_target_group.idlms_tg : k => tg.arn }
+}
+
+output "target_group_names" {
+  description = "Map of port (string) => Target Group name"
+  value       = { for k, tg in aws_lb_target_group.idlms_tg : k => tg.name }
 }
 
 output "listener_arns" {
-  value = { for k, l in aws_lb_listener.this : k => l.arn }
+  description = "Map of port (string) => Listener ARN"
+  value       = { for k, l in aws_lb_listener.idlms_listener : k => l.arn }
 }
 
-# Useful if you need to reference or debug attachments
 output "attachment_ids" {
-  value = [for a in aws_lb_target_group_attachment.multi : a.id]
+  description = "List of target group attachment IDs (one per target IP per port)"
+  value       = [for a in aws_lb_target_group_attachment.idlms_tg_attachment : a.id]
 }

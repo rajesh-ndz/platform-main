@@ -1,12 +1,19 @@
-output "repository_arns" {
-  value = { for k, r in aws_ecr_repository.this : k => r.arn }
+output "repository_name" {
+  description = "ECR repository name"
+  value       = aws_ecr_repository.idlms_repo.name
 }
-output "repository_urls" {
-  value = { for k, r in aws_ecr_repository.this : k => r.repository_url }
+
+output "repository_arn" {
+  description = "ECR repository ARN"
+  value       = aws_ecr_repository.idlms_repo.arn
 }
-output "repository_names" {
-  value = keys(aws_ecr_repository.this)
+
+output "repository_url" {
+  description = "ECR repository URL (registry/repo)"
+  value       = aws_ecr_repository.idlms_repo.repository_url
 }
-output "ssm_parameter_names" {
-  value = try([for p in aws_ssm_parameter.repo_url : p.name], [])
+
+output "registry_id" {
+  description = "ECR registry ID"
+  value       = aws_ecr_repository.idlms_repo.registry_id
 }

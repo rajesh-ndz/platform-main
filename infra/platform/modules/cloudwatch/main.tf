@@ -8,89 +8,87 @@ terraform {
   }
 }
 
-locals {
-  has_nlb = (
-    var.nlb_lb_arn_suffix != null && var.nlb_lb_arn_suffix != "" &&
-    var.nlb_tg_arn_suffix != null && var.nlb_tg_arn_suffix != ""
-  )
-}
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
 
-# Optional Log Group (for future use by CW Agent / app)
+# App / docker log group
 resource "aws_cloudwatch_log_group" "app" {
-  count             = var.create_app_log_group ? 1 : 0
-  name              = coalesce(var.app_log_group_name, "/idlms/${var.environment}/app")
-  retention_in_days = var.retention_days
-  tags              = var.tags
+  name              = var.docker_log_group_name
+  retention_in_days = var.retention_in_days
+  tags              = merge(var.common_tags, { Name = var.log_group_tag_name })
 }
 
-# EC2 Status Check Failed (any) >= 1
-resource "aws_cloudwatch_metric_alarm" "ec2_status_check" {
-  for_each = toset(var.ec2_instance_ids)
-
-  alarm_name          = "${var.environment}-ec2-${each.value}-statuscheck"
-  namespace           = "AWS/EC2"
-  metric_name         = "StatusCheckFailed"
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  threshold           = 1
-  statistic           = "Maximum"
-  period              = 60
-  evaluation_periods  = 2
-
-  dimensions = { InstanceId = each.value }
-
-  alarm_actions             = var.alarm_actions
-  ok_actions                = var.ok_actions
-  insufficient_data_actions = var.insufficient_data_actions
-  tags                      = var.tags
+# Optional S3 bucket for NLB access logs
+resource "aws_s3_bucket" "nlb_logs" {
+  count         = var.access_logs_bucket != "" ? 1 : 0
+  bucket        = var.access_logs_bucket
+  force_destroy = true
+  tags          = merge(var.common_tags, { Name = var.nlb_logs_bucket_tag_name, Environment = var.environment })
 }
 
-# NLB: UnHealthyHostCount > 0
-resource "aws_cloudwatch_metric_alarm" "nlb_unhealthy" {
-  count = local.has_nlb ? 1 : 0
-
-  alarm_name          = "${var.environment}-nlb-unhealthy-hosts"
-  namespace           = "AWS/NLB"
-  metric_name         = "UnHealthyHostCount"
-  statistic           = "Average"
-  comparison_operator = "GreaterThanThreshold"
-  threshold           = 0
-  period              = 60
-  evaluation_periods  = 2
-
-  dimensions = {
-    LoadBalancer = var.nlb_lb_arn_suffix
-    TargetGroup  = var.nlb_tg_arn_suffix
-  }
-
-  alarm_actions             = var.alarm_actions
-  ok_actions                = var.ok_actions
-  insufficient_data_actions = var.insufficient_data_actions
-  tags                      = var.tags
+resource "aws_s3_bucket_public_access_block" "block" {
+  count                   = var.access_logs_bucket != "" ? 1 : 0
+  bucket                  = aws_s3_bucket.nlb_logs[0].id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
 
-# NLB: HealthyHostCount < 1
-resource "aws_cloudwatch_metric_alarm" "nlb_healthy_low" {
-  count = local.has_nlb ? 1 : 0
+# NLB Access Logs bucket policy (ELB service principal)
+resource "aws_s3_bucket_policy" "nlb_logs_policy" {
+  count  = var.access_logs_bucket != "" ? 1 : 0
+  bucket = aws_s3_bucket.nlb_logs[0].id
 
-  alarm_name          = "${var.environment}-nlb-healthy-host-low"
-  namespace           = "AWS/NLB"
-  metric_name         = "HealthyHostCount"
-  statistic           = "Minimum"
-  comparison_operator = "LessThanThreshold"
-  threshold           = 1
-  period              = 60
-  evaluation_periods  = 2
-
-  dimensions = {
-    LoadBalancer = var.nlb_lb_arn_suffix
-    TargetGroup  = var.nlb_tg_arn_suffix
-  }
-
-  alarm_actions             = var.alarm_actions
-  ok_actions                = var.ok_actions
-  insufficient_data_actions = var.insufficient_data_actions
-  tags                      = var.tags
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Sid    = "AllowELBLogging",
+      Effect = "Allow",
+      Principal = {
+        Service = "logdelivery.elasticloadbalancing.amazonaws.com"
+      },
+      Action   = "s3:PutObject",
+      Resource = "${aws_s3_bucket.nlb_logs[0].arn}/${var.access_logs_prefix}/AWSLogs/${data.aws_caller_identity.current.account_id}/*",
+      Condition = {
+        StringEquals = {
+          "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+        },
+        ArnLike = {
+          "aws:SourceArn" = "arn:aws:elasticloadbalancing:${var.region}:${data.aws_caller_identity.current.account_id}:loadbalancer/net/*"
+        }
+      }
+    }]
+  })
 }
-locals {
-  prefix = coalesce(var.prefix, "idlms-${var.environment}")
+
+# SSM parameter holding the CloudWatch Agent config
+resource "aws_ssm_parameter" "cw_agent_config" {
+  name      = var.ssm_param_name
+  type      = "String"
+  tier      = "Standard"
+  overwrite = true
+
+  value = jsonencode({
+    agent = {
+      metrics_collection_interval = var.metrics_collection_interval,
+      logfile                     = var.cloudwatch_agent_logfile
+    },
+    logs = {
+      logs_collected = {
+        files = {
+          collect_list = [
+            {
+              file_path       = var.docker_log_file_path,
+              log_group_name  = var.docker_log_group_name,
+              log_stream_name = var.log_stream_name,
+              timezone        = var.timezone
+            }
+          ]
+        }
+      }
+    }
+  })
+
+  tags = merge(var.common_tags, { Name = var.ssm_tag_name })
 }

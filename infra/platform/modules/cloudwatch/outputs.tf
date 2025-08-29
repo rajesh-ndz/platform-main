@@ -1,12 +1,19 @@
-output "ec2_alarms" {
-  value = {
-    for k, a in aws_cloudwatch_metric_alarm.ec2_status_check : k => a.arn
-  }
+output "app_log_group_name" {
+  value       = aws_cloudwatch_log_group.app.name
+  description = "CloudWatch log group name for app/docker logs"
 }
 
-output "nlb_unhealthy_alarm_arn" { value = try(aws_cloudwatch_metric_alarm.nlb_unhealthy[0].arn, null) }
-output "nlb_healthy_low_alarm_arn" { value = try(aws_cloudwatch_metric_alarm.nlb_healthy_low[0].arn, null) }
+output "access_logs_bucket_name" {
+  value       = try(aws_s3_bucket.nlb_logs[0].bucket, null)
+  description = "NLB access logs bucket (if created)"
+}
 
-output "log_group_name" {
-  value = try(aws_cloudwatch_log_group.app[0].name, null)
+output "access_logs_bucket_arn" {
+  value       = try(aws_s3_bucket.nlb_logs[0].arn, null)
+  description = "NLB access logs bucket ARN (if created)"
+}
+
+output "ssm_param_name" {
+  value       = aws_ssm_parameter.cw_agent_config.name
+  description = "SSM parameter storing CloudWatch Agent config JSON"
 }
