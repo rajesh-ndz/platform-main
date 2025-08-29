@@ -1,6 +1,6 @@
-provider "aws" {
-  region = var.region
-}
+# provider "aws" {
+#   region = var.region
+# }
 
 locals {
   scheme    = var.use_https ? "https" : "http"
