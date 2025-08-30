@@ -1,3 +1,14 @@
+
+data "terraform_remote_state" "network" {
+  backend = "s3"
+  config = {
+    bucket = "idlms-terraform-state-backend"
+    key    = "stage/network/terraform.tfstate"
+    region = "ap-south-1"
+  }
+}
+
+
 module "compute" {
   source             = "../../../../platform/core/compute"
   env_name           = var.env_name
@@ -10,7 +21,7 @@ module "compute" {
   app_ports          = var.app_ports
   tags               = var.tags
 
-  cloudwatch_ssm_config_path = var.cloudwatch_ssm_config_path # ← here
+  cloudwatch_ssm_config_path = var.cloudwatch_ssm_config_path
 
 }
 
