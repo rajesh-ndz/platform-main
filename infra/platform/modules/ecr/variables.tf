@@ -19,15 +19,15 @@ variable "scan_on_push" {
   description = "Enable image scanning on push"
 }
 
-variable "encryption_type" {
-  type        = string
-  default     = "AES256"
-  description = "AES256 or KMS"
-  validation {
-    condition     = contains(["AES256", "KMS"], var.encryption_type)
-    error_message = "encryption_type must be AES256 or KMS."
-  }
-}
+# variable "encryption_type" {
+#   type        = string
+#   default     = "AES256"
+#   description = "AES256 or KMS"
+#   validation {
+#     condition     = contains(["AES256", "KMS"], var.encryption_type)
+#     error_message = "encryption_type must be AES256 or KMS."
+#   }
+# }
 
 variable "kms_key_arn" {
   type        = string
@@ -47,16 +47,16 @@ variable "tags" {
   description = "Tags for the repository"
 }
 
-# Optional: lifecycle policy JSON
-variable "lifecycle_policy_json" {
-  type        = string
-  default     = null
-  description = "ECR lifecycle policy JSON (optional)"
-}
+# # Optional: lifecycle policy JSON
+# variable "lifecycle_policy_json" {
+#   type        = string
+#   default     = null
+#   description = "ECR lifecycle policy JSON (optional)"
+# }
 
-# Optional: repository policy JSON (e.g., cross-account pull permissions)
-variable "repository_policy_json" {
-  type        = string
-  default     = null
-  description = "ECR repository policy JSON (optional)"
-}
+# # Optional: repository policy JSON (e.g., cross-account pull permissions)
+# variable "repository_policy_json" {
+#   type        = string
+#   default     = null
+#   description = "ECR repository policy JSON (optional)"
+# }

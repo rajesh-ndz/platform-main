@@ -21,7 +21,7 @@ variable "load_balancer_type" {
 
 variable "internal" {
   type        = bool
-  default     = false
+  default     = true
   description = "Internal NLB (true) or internet-facing (false)"
 }
 

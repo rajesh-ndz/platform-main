@@ -18,23 +18,24 @@ resource "aws_ecr_repository" "idlms_repo" {
   image_scanning_configuration {
     scan_on_push = var.scan_on_push
   }
-
-  encryption_configuration {
-    encryption_type = var.encryption_type
-    kms_key         = var.encryption_type == "KMS" ? var.kms_key_arn : null
-  }
 }
 
-# Optional lifecycle policy
-resource "aws_ecr_lifecycle_policy" "this" {
-  count      = var.lifecycle_policy_json != null && trimspace(var.lifecycle_policy_json) != "" ? 1 : 0
-  repository = aws_ecr_repository.idlms_repo.name
-  policy     = var.lifecycle_policy_json
-}
+#   encryption_configuration {
+#     encryption_type = var.encryption_type
+#     kms_key         = var.encryption_type == "KMS" ? var.kms_key_arn : null
+#   }
+# 
 
-# Optional repository policy (e.g., cross-account pulls)
-resource "aws_ecr_repository_policy" "this" {
-  count      = var.repository_policy_json != null && trimspace(var.repository_policy_json) != "" ? 1 : 0
-  repository = aws_ecr_repository.idlms_repo.name
-  policy     = var.repository_policy_json
-}
+# # Optional lifecycle policy
+# resource "aws_ecr_lifecycle_policy" "this" {
+#   count      = var.lifecycle_policy_json != null && trimspace(var.lifecycle_policy_json) != "" ? 1 : 0
+#   repository = aws_ecr_repository.idlms_repo.name
+#   policy     = var.lifecycle_policy_json
+# }
+
+# # Optional repository policy (e.g., cross-account pulls)
+# resource "aws_ecr_repository_policy" "this" {
+#   count      = var.repository_policy_json != null && trimspace(var.repository_policy_json) != "" ? 1 : 0
+#   repository = aws_ecr_repository.idlms_repo.name
+#   policy     = var.repository_policy_json
+# }
