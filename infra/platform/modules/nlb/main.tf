@@ -1,24 +1,38 @@
-terraform {
-  required_version = ">= 1.5.0"
+locals {
+  use_subnet_mapping = length(var.subnet_mapping) > 0
 
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.0"
-    }
-  }
+  port_map = { for p in var.ports : tostring(p) => p }
+
+  # Build flattened attachments for instance + ip modes
+  inst_attach = flatten([
+    for pk, _p in local.port_map : [
+      for id in var.instance_ids : {
+        key    = "${pk}-${id}"
+        port_k = pk
+        id     = id
+      }
+    ]
+  ])
+  ip_attach = flatten([
+    for pk, _p in local.port_map : [
+      for ip in var.ip_addresses : {
+        key    = "${pk}-${ip}"
+        port_k = pk
+        ip     = ip
+      }
+    ]
+  ])
 }
 
-# ── Load Balancer ───────────────────────────────────────────────────────────────
-resource "aws_lb" "idlms_nlb" {
-  name                             = var.name
-  load_balancer_type               = var.load_balancer_type # should be "network"
+resource "aws_lb" "this" {
+  name                             = substr("${var.env_name}-${var.name}", 0, 32)
   internal                         = var.internal
-  enable_cross_zone_load_balancing = var.enable_cross_zone_load_balancing
-  enable_deletion_protection       = var.enable_deletion_protection
+  load_balancer_type               = "network"
+  enable_cross_zone_load_balancing = var.cross_zone
 
+  # Either subnets or subnet_mapping
   dynamic "subnet_mapping" {
-    for_each = var.subnet_mapping
+    for_each = local.use_subnet_mapping ? var.subnet_mapping : []
     content {
       subnet_id            = subnet_mapping.value.subnet_id
       allocation_id        = try(subnet_mapping.value.allocation_id, null)
@@ -27,61 +41,54 @@ resource "aws_lb" "idlms_nlb" {
     }
   }
 
-  tags = merge(var.tags, { Name = var.name })
+  subnets = local.use_subnet_mapping ? null : var.subnet_ids
+
+  tags = merge(var.tags, {
+    Environment = var.env_name
+    Name        = substr("${var.env_name}-${var.name}", 0, 32)
+  })
 }
 
-# ── One Target Group per Port ───────────────────────────────────────────────────
-resource "aws_lb_target_group" "idlms_tg" {
-  for_each = { for port in var.additional_ports : tostring(port) => port }
-
-  name        = "${var.name}-tg-${each.key}" # NOTE: keep under 32 chars total
-  port        = each.value
-  protocol    = "TCP"
-  target_type = "ip"
-  vpc_id      = var.vpc_id
+resource "aws_lb_target_group" "multi" {
+  for_each             = local.port_map
+  name                 = substr("${var.env_name}-${var.name}-${each.value}", 0, 32)
+  port                 = each.value
+  protocol             = "TCP"
+  vpc_id               = var.vpc_id
+  target_type          = var.target_type
+  deregistration_delay = var.deregistration_delay
 
   health_check {
-    protocol            = "TCP"
-    port                = each.value
-    healthy_threshold   = var.hc_healthy_threshold
-    unhealthy_threshold = var.hc_unhealthy_threshold
-    timeout             = var.hc_timeout
-    interval            = var.hc_interval
+    protocol = var.health_check_protocol
+    port     = "traffic-port"
   }
 
-  tags = merge(var.tags, { Name = "${var.name}-tg-${each.key}" })
+  tags = var.tags
 }
 
-# ── Attach every target IP to every port’s TG ───────────────────────────────────
-locals {
-  port_ip_pairs = flatten([
-    for port in var.additional_ports : [
-      for ip in var.target_ips : {
-        port = port
-        ip   = ip
-        key  = "${port}-${ip}"
-      }
-    ]
-  ])
-}
-
-resource "aws_lb_target_group_attachment" "idlms_tg_attachment" {
-  for_each = { for combo in local.port_ip_pairs : combo.key => combo }
-
-  target_group_arn = aws_lb_target_group.idlms_tg[tostring(each.value.port)].arn
-  target_id        = each.value.ip
-  port             = each.value.port
-}
-
-# ── One Listener per Port ──────────────────────────────────────────────────────
-resource "aws_lb_listener" "idlms_listener" {
-  for_each          = { for port in var.additional_ports : tostring(port) => port }
-  load_balancer_arn = aws_lb.idlms_nlb.arn
-  port              = each.value
-  protocol          = "TCP"
-
+resource "aws_lb_listener" "this" {
+  for_each           = local.port_map
+  load_balancer_arn  = aws_lb.this.arn
+  port               = each.value
+  protocol           = "TCP"
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.idlms_tg[each.key].arn
+    target_group_arn = aws_lb_target_group.multi[each.key].arn
   }
+}
+
+# Attach instances (when target_type = "instance")
+resource "aws_lb_target_group_attachment" "instance_multi" {
+  for_each         = var.target_type == "instance" ? { for o in local.inst_attach : o.key => o } : {}
+  target_group_arn = aws_lb_target_group.multi[each.value.port_k].arn
+  target_id        = each.value.id
+  port             = tonumber(each.value.port_k)
+}
+
+# Attach IPs (when target_type = "ip")
+resource "aws_lb_target_group_attachment" "ip_multi" {
+  for_each         = var.target_type == "ip" ? { for o in local.ip_attach : o.key => o } : {}
+  target_group_arn = aws_lb_target_group.multi[each.value.port_k].arn
+  target_id        = each.value.ip
+  port             = tonumber(each.value.port_k)
 }
