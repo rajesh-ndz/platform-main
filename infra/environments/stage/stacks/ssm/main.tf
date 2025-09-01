@@ -13,9 +13,9 @@ locals {
   ls_map = data.terraform_remote_state.nlb.outputs.listener_arns
 
   values_base = {
-    lb_arn       = data.terraform_remote_state.nlb.outputs.lb_arn
-    lb_dns_name  = data.terraform_remote_state.nlb.outputs.lb_dns_name
-    lb_zone_id   = data.terraform_remote_state.nlb.outputs.lb_zone_id
+    lb_arn      = data.terraform_remote_state.nlb.outputs.lb_arn
+    lb_dns_name = data.terraform_remote_state.nlb.outputs.lb_dns_name
+    lb_zone_id  = data.terraform_remote_state.nlb.outputs.lb_zone_id
     # Store the maps as JSON strings for consumers
     target_group_arns = jsonencode(local.tg_map)
     listener_arns     = jsonencode(local.ls_map)
