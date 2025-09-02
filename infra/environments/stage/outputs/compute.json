@@ -1,0 +1,17 @@
+{
+  "instance_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "i-0724aa72e5520150a"
+  },
+  "instance_private_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "10.10.10.123"
+  },
+  "security_group_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "sg-0aaa3963a45203883"
+  }
+}
