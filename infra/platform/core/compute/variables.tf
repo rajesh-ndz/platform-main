@@ -1,34 +1,28 @@
-variable "env_name" {
-  type = string
-}
+variable "env_name"           { type = string }
+variable "region"             { type = string }
+variable "ec2_name"           { type = string }
+variable "instance_type"      { type = string }
+variable "ami_id"             { type = string }
+variable "key_name"           { type = string }
+variable "app_ports"          { type = list(number) }
+variable "cloudwatch_ssm_config_path" { type = string }
 
-variable "vpc_id" {
-  type = string
-}
+# network inputs (from remote_state at the stack)
+variable "vpc_id"             { type = string }
+variable "private_subnet_ids" { type = list(string) }
 
-variable "private_subnet_ids" {
-  type = list(string)
-}
-
-variable "ec2_name" {
-  type = string
-}
-
-variable "instance_type" {
-  type = string
-}
-
-variable "ami_id" {
+# reuse existing IAM instead of creating (optional)
+variable "existing_iam_role_name" {
   type    = string
-  default = "" # your module can default if empty
+  default = null
 }
-
-variable "key_name" {
+variable "existing_instance_profile_name" {
   type    = string
   default = null
 }
 
-variable "user_data" {
+# optional extras
+variable "docker_artifact_bucket" {
   type    = string
   default = null
 }
@@ -36,11 +30,4 @@ variable "user_data" {
 variable "tags" {
   type    = map(string)
   default = {}
-}
-variable "cloudwatch_ssm_config_path" {
-  type = string
-}
-variable "app_ports" {
-  type    = list(number)
-  default = []
 }
