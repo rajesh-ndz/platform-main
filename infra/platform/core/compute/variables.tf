@@ -1,28 +1,39 @@
-variable "env_name"           { type = string }
-variable "region"             { type = string }
-variable "ec2_name"           { type = string }
-variable "instance_type"      { type = string }
-variable "ami_id"             { type = string }
-variable "key_name"           { type = string }
-variable "app_ports"          { type = list(number) }
-variable "cloudwatch_ssm_config_path" { type = string }
+variable "env_name"  { type = string }
+variable "region"    { type = string }
 
-# network inputs (from remote_state at the stack)
+# network inputs
 variable "vpc_id"             { type = string }
 variable "private_subnet_ids" { type = list(string) }
 
-# reuse existing IAM instead of creating (optional)
+# instance settings
+variable "ec2_name"      { type = string }
+variable "instance_type" { type = string }
+variable "key_name"      { type = string }
+variable "app_ports"     { type = list(number) }
+
+# AMI: either set ami_id OR leave it null to use the SSM param below
+variable "ami_id" {
+  type    = string
+  default = null
+}
+variable "ami_ssm_parameter_name" {
+  type    = string
+  default = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64"
+}
+
+# agents/config/artifacts
+variable "cloudwatch_ssm_config_path" { type = string }
+variable "docker_artifact_bucket" {
+  type    = string
+  default = null
+}
+
+# reuse existing IAM names (or module will create)
 variable "existing_iam_role_name" {
   type    = string
   default = null
 }
 variable "existing_instance_profile_name" {
-  type    = string
-  default = null
-}
-
-# optional extras
-variable "docker_artifact_bucket" {
   type    = string
   default = null
 }
