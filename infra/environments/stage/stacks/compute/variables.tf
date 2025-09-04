@@ -41,3 +41,9 @@ variable "tags" {
   type    = map(string)
   default = {}
 }
+
+# Ports to expose on the NLB. If empty, app_ports will be used.
+variable "nlb_ports" {
+  type    = list(number)
+  default = []
+}
