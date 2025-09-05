@@ -30,3 +30,9 @@ variable "tags" {
   type    = map(string)
   default = {}
 }
+
+variable "ssm_prefix" {
+  type        = string
+  default     = ""
+  description = "If non-empty, publish ECR details to SSM under this prefix (e.g., /idlms/ecr/stage)"
+}

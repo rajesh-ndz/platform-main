@@ -1,13 +1,18 @@
-variable "region" {
-  type = string # provider file already uses this
-}
-
 variable "env_name" {
   type = string
 }
 
+variable "region" {
+  type = string
+}
+
 variable "repositories" {
-  type = list(string) # e.g., ["idlms-api"]
+  type = list(string)
+}
+
+variable "prefix_with_env" {
+  type    = bool
+  default = true
 }
 
 variable "image_tag_mutability" {
@@ -21,11 +26,6 @@ variable "scan_on_push" {
 }
 
 variable "force_delete" {
-  type    = bool
-  default = true
-}
-
-variable "prefix_with_env" {
   type    = bool
   default = true
 }
