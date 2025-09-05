@@ -7,7 +7,8 @@ variable "ami_id" {
   type        = string
   description = "AMI ID to use (Ubuntu AMI in your example)"
 }
-
+variable "amis" {}
+variable "aws_region" {}
 variable "instance_type" {
   type        = string
   description = "EC2 instance type (e.g., t3.micro)"
