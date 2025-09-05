@@ -1,5 +1,26 @@
+variable "env_name" { type = string }
+variable "region" { type = string }
+
+variable "tf_state_bucket" { type = string }
+variable "tf_state_region" { type = string }
+
 variable "ports" {
   type = list(number)
+}
+
+variable "internal" {
+  type    = bool
+  default = true
+}
+
+variable "lb_create_sg" {
+  type    = bool
+  default = true
+}
+
+variable "additional_ports" {
+  type    = list(number)
+  default = []
 }
 
 variable "target_instance_ids" {
@@ -7,8 +28,15 @@ variable "target_instance_ids" {
   default = []
 }
 
-variable "ssm_prefix" {
-  type        = string
-  default     = ""
-  description = "Write NLB details to this SSM path if non-empty"
+variable "common_tags" {
+  type    = map(string)
+  default = {}
 }
+
+variable "ssm_prefix" {
+  type    = string
+  default = ""
+}
+
+variable "network_state_key" { type = string }
+variable "compute_state_key" { type = string }

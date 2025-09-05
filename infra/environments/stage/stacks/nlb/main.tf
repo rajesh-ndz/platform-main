@@ -10,9 +10,9 @@ locals {
 data "terraform_remote_state" "network" {
   backend = "s3"
   config = {
-    bucket       = "idlms-terraform-state-backend"
-    key          = "network/stage/terraform.tfstate"
-    region       = "ap-south-1"
+    bucket       = var.tf_state_bucket
+    key          = var.network_state_key
+    region       = var.tf_state_region
     encrypt      = true
     use_lockfile = true
   }
@@ -21,9 +21,9 @@ data "terraform_remote_state" "network" {
 data "terraform_remote_state" "compute" {
   backend = "s3"
   config = {
-    bucket       = "idlms-terraform-state-backend"
-    key          = "compute/stage/terraform.tfstate"
-    region       = "ap-south-1"
+    bucket       = var.tf_state_bucket
+    key          = var.compute_state_key
+    region       = var.tf_state_region
     encrypt      = true
     use_lockfile = true
   }

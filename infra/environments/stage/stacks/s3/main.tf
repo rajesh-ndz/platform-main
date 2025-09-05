@@ -1,37 +1,48 @@
 data "aws_caller_identity" "current" {}
 
 locals {
-  # Unique-by-account default bucket name (safe in all envs)
-  convention_name   = "idlms-${var.env_name}-${var.s3_name}-${data.aws_caller_identity.current.account_id}"
-  computed_override = var.use_idlms_artifact_convention && var.bucket_name_override == null ? local.convention_name : var.bucket_name_override
+  bucket_name  = var.bucket_name_override != "" ? var.bucket_name_override : "idlms-${var.env_name}-website-built-artifact-${data.aws_caller_identity.current.account_id}"
+  default_tags = merge({ Environment = var.env_name, ManagedBy = "terraform", Component = "artifact-bucket" }, var.tags)
 }
 
-module "s3" {
-  source = "../../../../platform/container/s3"
-
-  environment = var.env_name
-  name        = var.s3_name
-
-  bucket_name_override = local.computed_override
-
-  sse_algorithm = var.sse_algorithm
-  kms_key_id    = var.kms_key_id
-
-  versioning    = var.versioning
-  force_destroy = var.force_destroy
-
-  enable_ia_transition   = var.enable_ia_transition
-  ia_after_days          = var.ia_after_days
-  noncurrent_expire_days = var.noncurrent_expire_days
-  expire_after_days      = var.expire_after_days
-
-  create_ssm_params = var.create_ssm_params
-  ssm_path_prefix   = var.ssm_path_prefix
-
-  tags = merge({ Project = "IDLMS", Environment = var.env_name }, var.tags)
+resource "aws_s3_bucket" "artifact" {
+  bucket = local.bucket_name
+  tags   = local.default_tags
 }
 
-output "bucket_name" { value = module.s3.bucket_id }
-output "bucket_arn" { value = module.s3.bucket_arn }
-output "ssm_bucket_name_param" { value = module.s3.ssm_bucket_name_param }
-output "ssm_bucket_arn_param" { value = module.s3.ssm_bucket_arn_param }
+resource "aws_s3_bucket_versioning" "artifact" {
+  bucket = aws_s3_bucket.artifact.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "artifact" {
+  bucket = aws_s3_bucket.artifact.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "artifact" {
+  bucket                  = aws_s3_bucket.artifact.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# SSM params so CI can discover bucket + key without hardcoding
+resource "aws_ssm_parameter" "bucket_name" {
+  name  = "/idlms/artifacts/${var.env_name}/bucket_name"
+  type  = "String"
+  value = aws_s3_bucket.artifact.bucket
+}
+
+resource "aws_ssm_parameter" "artifact_key" {
+  name  = "/idlms/artifacts/${var.env_name}/artifact_key"
+  type  = "String"
+  value = "website/latest.tar.gz"
+}
