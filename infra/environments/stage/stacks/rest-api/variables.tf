@@ -22,7 +22,7 @@ variable "stage_name" {
 
 variable "description" {
   type    = string
-  default = "IDLMS REST API via VPC Link -> NLB"
+  default = "IDLMS REST API via VPC Link to internal NLB"
 }
 
 variable "port" {

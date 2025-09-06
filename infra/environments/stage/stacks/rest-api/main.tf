@@ -14,21 +14,11 @@ module "rest_api" {
   access_log_retention_days = var.access_log_retention_days
   enable_execution_logs     = var.enable_execution_logs
 
-  tags = merge({ Environment = var.env_name, Project = "IDLMS" }, var.tags)
+  tags = var.tags
 }
 
-output "rest_api_id" {
-  value = module.rest_api.rest_api_id
-}
-output "invoke_url" {
-  value = module.rest_api.invoke_url
-}
-output "vpc_link_id" {
-  value = module.rest_api.vpc_link_id
-}
-output "access_log_group" {
-  value = module.rest_api.access_log_group
-}
-output "stage_name" {
-  value = module.rest_api.stage_name
-}
+output "rest_api_id" { value = module.rest_api.rest_api_id }
+output "invoke_url" { value = module.rest_api.invoke_url }
+output "vpc_link_id" { value = module.rest_api.vpc_link_id }
+output "access_log_group" { value = module.rest_api.access_log_group }
+output "stage_name" { value = module.rest_api.stage_name }

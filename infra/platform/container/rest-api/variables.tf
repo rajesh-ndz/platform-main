@@ -1,55 +1,34 @@
-variable "env_name" {
-  type = string
-}
+variable "env_name" { type = string }
+variable "region"   { type = string }
 
-variable "region" {
-  type = string
-}
+variable "api_name"   { type = string }
+variable "stage_name" { type = string }
+variable "description"{ type = string }
 
-# API basics
-variable "api_name" {
+variable "nlb_ssm_prefix" { type = string }
+variable "port"           { type = number }
+variable "endpoint_type"  { type = string }
+
+variable "access_log_retention_days" { type = number }
+
+variable "enable_execution_logs" { type = bool }
+
+# NEW: execution log controls
+variable "execution_log_level" {
   type    = string
-  default = "idlms-api"
+  default = "ERROR" # can be "OFF" | "ERROR" | "INFO"
 }
 
-variable "stage_name" {
-  type    = string
-  default = "stage"
-}
-
-variable "description" {
-  type    = string
-  default = "IDLMS REST API via VPC Link -> NLB"
-}
-
-# NLB from SSM and backend port
-variable "nlb_ssm_prefix" {
-  type = string # e.g., "/idlms/nlb/stage"
-}
-
-variable "port" {
-  type    = number
-  default = 4000
-}
-
-# Endpoint type: EDGE | REGIONAL | PRIVATE
-variable "endpoint_type" {
-  type    = string
-  default = "REGIONAL"
-}
-
-# Logging
-variable "access_log_retention_days" {
-  type    = number
-  default = 14
-}
-
-variable "enable_execution_logs" {
+variable "execution_metrics_enabled" {
   type    = bool
   default = true
 }
 
-# Tags
+variable "execution_data_trace" {
+  type    = bool
+  default = false
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
