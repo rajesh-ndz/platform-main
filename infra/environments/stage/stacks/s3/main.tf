@@ -36,13 +36,15 @@ resource "aws_s3_bucket_public_access_block" "artifact" {
 
 # SSM params so CI can discover bucket + key without hardcoding
 resource "aws_ssm_parameter" "bucket_name" {
-  name  = "/idlms/artifacts/${var.env_name}/bucket_name"
-  type  = "String"
-  value = aws_s3_bucket.artifact.bucket
+  name      = "/idlms/artifacts/${var.env_name}/bucket_name"
+  type      = "String"
+  value     = aws_s3_bucket.artifact.bucket
+  overwrite = true
 }
 
 resource "aws_ssm_parameter" "artifact_key" {
-  name  = "/idlms/artifacts/${var.env_name}/artifact_key"
-  type  = "String"
-  value = "website/latest.tar.gz"
+  name      = "/idlms/artifacts/${var.env_name}/artifact_key"
+  type      = "String"
+  value     = "website/latest.tar.gz"
+  overwrite = true
 }
